@@ -86,6 +86,6 @@ local Button = MainTab:CreateButton({
 local Button = MainTab:CreateButton({
    Name = "esp and aimbot",
    Callback = function()
-   loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Aimbot-Universal-For-Mobile-and-PC-29153"))()
+   loadstring(game:HttpGet("https://raw.githubusercontent.com/dorpew/cynalez/refs/heads/main/main.lua"))()
    end,
 })
