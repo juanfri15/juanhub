@@ -89,3 +89,10 @@ local Button = MainTab:CreateButton({
    loadstring(game:HttpGet("https://raw.githubusercontent.com/dorpew/cynalez/refs/heads/main/main.lua"))()
    end,
 })
+
+local Button = MainTab:CreateButton({
+   Name = "flinging",
+   Callback = function()
+   loadstring(game:HttpGet("https://obj.wearedevs.net/s/6974384c0385f7a2505370a4.lua"))()
+   end,
+})
