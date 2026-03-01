@@ -75,3 +75,10 @@ local Button = MainTab:CreateButton({
    loadstring(game:HttpGet("https://obj.wearedevs.net/2/scripts/Infinite%20Yield.lua"))()
    end,
 })
+
+local Button = MainTab:CreateButton({
+   Name = "aimbot",
+   Callback = function()
+   loadstring(game:HttpGet("https://obj.wearedevs.net/s/610067c537cd63b05ca78e6c.lua"))()
+   end,
+})
