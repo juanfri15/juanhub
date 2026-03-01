@@ -77,15 +77,15 @@ local Button = MainTab:CreateButton({
 })
 
 local Button = MainTab:CreateButton({
-   Name = "esp",
+   Name = "platform",
    Callback = function()
-   loadstring(game:HttpGet("https://obj.wearedevs.net/s/611c5e8f37f27bdc436897be.lua"))()
+   loadstring(game:HttpGet("https://obj.wearedevs.net/s/6976c72ba566a501bea4d6b3.lua"))()
    end,
 })
 
 local Button = MainTab:CreateButton({
-   Name = "tp",
+   Name = "esp and aimbot",
    Callback = function()
-   loadstring(game:HttpGet("https://obj.wearedevs.net/s/6983aad052aa4eaad6fad764.lua"))()
+   loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Aimbot-Universal-For-Mobile-and-PC-29153"))()
    end,
 })
