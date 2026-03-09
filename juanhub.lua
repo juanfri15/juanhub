@@ -1,3 +1,4 @@
+```lua
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
@@ -22,13 +23,13 @@ local Window = Rayfield:CreateWindow({
    Discord = {
       Enabled = false,
       Invite = "noinvitelink",
-      RememberJoins = true 
+      RememberJoins = true
    },
 
    KeySystem = true,
    KeySettings = {
       Title = "juanfri hub key",
-      Subtitle = "en progeso",
+      Subtitle = "en progreso",
       Note = "key dada por juanfri",
       FileName = "Key",
       SaveKey = true,
@@ -47,52 +48,59 @@ Rayfield:Notify({
    Image = nil,
 })
 
-local Button = MainTab:CreateButton({
+-- Infinite Jump
+MainTab:CreateButton({
    Name = "infinite jump",
    Callback = function()
-   loadstring(game:HttpGet("https://obj.wearedevs.net/2/scripts/Infinite%20Jump.lua"))()
+      loadstring(game:HttpGet("https://obj.wearedevs.net/2/scripts/Infinite%20Jump.lua"))()
    end,
 })
 
-local Button = MainTab:CreateButton({
+-- Fly
+MainTab:CreateButton({
    Name = "fly",
    Callback = function()
-   loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
-
+      loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
    end,
 })
 
-local Button = MainTab:CreateButton({
+-- Noclip
+MainTab:CreateButton({
    Name = "noclip",
    Callback = function()
-   loadstring(game:HttpGet("https://obj.wearedevs.net/2/scripts/Noclip.lua"))()
+      loadstring(game:HttpGet("https://obj.wearedevs.net/2/scripts/Noclip.lua"))()
    end,
 })
 
-local Button = MainTab:CreateButton({
+-- Infinite Yield
+MainTab:CreateButton({
    Name = "infinite yield",
    Callback = function()
-   loadstring(game:HttpGet("https://obj.wearedevs.net/2/scripts/Infinite%20Yield.lua"))()
+      loadstring(game:HttpGet("https://obj.wearedevs.net/2/scripts/Infinite%20Yield.lua"))()
    end,
 })
 
-local Button = MainTab:CreateButton({
+-- Platform
+MainTab:CreateButton({
    Name = "platform",
    Callback = function()
-   loadstring(game:HttpGet("https://obj.wearedevs.net/s/6976c72ba566a501bea4d6b3.lua"))()
+      loadstring(game:HttpGet("https://obj.wearedevs.net/s/6976c72ba566a501bea4d6b3.lua"))()
    end,
 })
 
-local Button = MainTab:CreateButton({
+-- ESP and Aimbot
+MainTab:CreateButton({
    Name = "esp and aimbot",
    Callback = function()
-   loadstring(game:https://raw.githubusercontent.com/juanfri15/juanhub/refs/heads/main/esp%20and%20aimbot()
+      loadstring(game:HttpGet("https://raw.githubusercontent.com/juanfri15/juanhub/refs/heads/main/esp%20and%20aimbot.lua"))()
    end,
 })
 
-local Button = MainTab:CreateButton({
+-- Flinging
+MainTab:CreateButton({
    Name = "flinging",
    Callback = function()
-   loadstring(game:HttpGet("https://obj.wearedevs.net/s/6974384c0385f7a2505370a4.lua"))()
+      loadstring(game:HttpGet("https://obj.wearedevs.net/s/6974384c0385f7a2505370a4.lua"))()
    end,
 })
+```
