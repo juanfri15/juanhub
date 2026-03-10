@@ -1,4 +1,4 @@
-cal Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 
 local Window = Rayfield:CreateWindow({
    Name = "juanfrihub",
@@ -84,9 +84,9 @@ local Button = MainTab:CreateButton({
 })
 
 local Button = MainTab:CreateButton({
-   Name = "esp and aimbot",
+   Name = "esp,aimbot and movement",
    Callback = function()
-   loadstring(game:HttpGet("https://raw.githubusercontent.com/juanfri15/juanhub/refs/heads/main/esp%20and%20aimbot"))()
+   loadstring(game:HttpGet("https://raw.githubusercontent.com/juanfri15/juanhub/refs/heads/main/esp%20and%20aimbot.lua"))()
    end,
 })
 
