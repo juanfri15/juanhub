@@ -1,4 +1,4 @@
--- Movement and Combat GUI by Juan Hub - Kavo UI (Team Check + Health Bar FIXED)
+-- Movement and Combat GUI by Juan Hub - Kavo UI (WalkSpeed & JumpPower SUPER FIXED + Team Check + Health Bar)
 
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
 local Window = Library.CreateLib("Movement & Combat | Juan Hub", "DarkTheme")
@@ -10,8 +10,8 @@ local UserInputService = game:GetService("UserInputService")
 
 local player    = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
-local humanoid  = character:WaitForChild("Humanoid")
-local rootPart  = character:WaitForChild("HumanoidRootPart")
+local humanoid  = character:WaitForChild("Humanoid", 5)
+local rootPart  = character:WaitForChild("HumanoidRootPart", 5)
 
 -- ==================== MOVEMENT VARIABLES ====================
 local flyEnabled          = false
@@ -34,13 +34,40 @@ local healthBarEnabled = true
 local espDrawings = {}
 local camera = workspace.CurrentCamera
 
--- WalkSpeed + JumpPower
-RunService.Heartbeat:Connect(function()
-   if character and humanoid and humanoid.Parent then
-      humanoid.WalkSpeed = walkSpeedEnabled and walkSpeedValue or 16
-      humanoid.JumpPower = jumpPowerEnabled and jumpPowerValue or 50
+-- WalkSpeed + JumpPower (SUPER FIX: RenderStepped + PropertyChangedSignal para anti-reset)
+local function applyMovement()
+   if not character or not humanoid or not humanoid.Parent then return end
+   
+   local targetWalk = walkSpeedEnabled and walkSpeedValue or 16
+   if humanoid.WalkSpeed ~= targetWalk then
+      humanoid.WalkSpeed = targetWalk
    end
-end)
+   
+   local targetJump = jumpPowerEnabled and jumpPowerValue or 50
+   if humanoid.UseJumpPower then
+      if humanoid.JumpPower ~= targetJump then
+         humanoid.JumpPower = targetJump
+      end
+   else
+      local targetHeight = jumpPowerEnabled and (jumpPowerValue / 7.2) or 7.2  -- Conversión aproximada si usa JumpHeight
+      if humanoid.JumpHeight ~= targetHeight then
+         humanoid.JumpHeight = targetHeight
+      end
+   end
+end
+
+RunService.RenderStepped:Connect(applyMovement)  -- RenderStepped para prioridad máxima
+
+-- Anti-reset signals
+local function setupMovementSignals()
+   if humanoid then
+      humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(applyMovement)
+      humanoid:GetPropertyChangedSignal("JumpPower"):Connect(applyMovement)
+      humanoid:GetPropertyChangedSignal("JumpHeight"):Connect(applyMovement)
+   end
+end
+
+setupMovementSignals()  -- Inicial
 
 -- Infinite Jump
 UserInputService.JumpRequest:Connect(function()
@@ -112,10 +139,10 @@ local MainSection = MainTab:NewSection("Movement Controls")
 
 MainSection:NewToggle("Fly", "Vuelo libre con WASD + Space/Ctrl", function(s) toggleFly(s) end)
 MainSection:NewSlider("Fly Speed", "Velocidad del vuelo", 500, 10, function(v) flySpeed = v end)
-MainSection:NewToggle("Walk Speed", "Activar velocidad personalizada", function(s) walkSpeedEnabled = s end)
-MainSection:NewSlider("Walk Speed Value", "Valor de WalkSpeed", 1000, 16, function(v) walkSpeedValue = v end)
-MainSection:NewToggle("Jump Power", "Activar salto más alto", function(s) jumpPowerEnabled = s end)
-MainSection:NewSlider("Jump Power Value", "Valor de JumpPower", 1000, 50, function(v) jumpPowerValue = v end)
+MainSection:NewToggle("Walk Speed", "Activar velocidad personalizada", function(s) walkSpeedEnabled = s applyMovement() end)
+MainSection:NewSlider("Walk Speed Value", "Valor de WalkSpeed", 1000, 16, function(v) walkSpeedValue = v applyMovement() end)
+MainSection:NewToggle("Jump Power", "Activar salto más alto", function(s) jumpPowerEnabled = s applyMovement() end)
+MainSection:NewSlider("Jump Power Value", "Valor de JumpPower", 1000, 50, function(v) jumpPowerValue = v applyMovement() end)
 MainSection:NewToggle("Infinite Jump", "Saltar infinitamente en el aire", function(s) infiniteJumpEnabled = s end)
 MainSection:NewToggle("Noclip", "Atravesar paredes", function(s) toggleNoclip(s) end)
 
@@ -134,16 +161,9 @@ local function createESP(plr)
       healthBar = Drawing.new("Square")
    }
    
-   -- Box
    d.box.Thickness = 2; d.box.Filled = false; d.box.Transparency = 1; d.box.Color = Color3.fromRGB(255,0,0); d.box.Visible = false
-   
-   -- Name
    d.name.Size = 14; d.name.Center = true; d.name.Outline = true; d.name.Color = Color3.new(1,1,1); d.name.Transparency = 1; d.name.Visible = false
-   
-   -- Tracer
    d.tracer.Thickness = 1.5; d.tracer.Transparency = 0.8; d.tracer.Color = Color3.fromRGB(0,255,255); d.tracer.Visible = false
-   
-   -- Health Bar
    d.healthBG.Filled = true; d.healthBG.Transparency = 0.6; d.healthBG.Color = Color3.fromRGB(20,20,20); d.healthBG.Visible = false
    d.healthBar.Filled = true; d.healthBar.Transparency = 1; d.healthBar.Visible = false
    
@@ -162,7 +182,6 @@ local function updateESP()
          continue
       end
 
-      -- TEAM CHECK
       if teamCheckEnabled and plr.Team == player.Team and not plr.Neutral then
          d.box.Visible = false; d.name.Visible = false; d.tracer.Visible = false
          d.healthBG.Visible = false; d.healthBar.Visible = false
@@ -175,35 +194,29 @@ local function updateESP()
       if onScreen then
          local boxHeight = 5.8
          local boxWidth  = boxHeight / 2.1
-         local rootPos   = root.Position
 
-         -- BOX
          d.box.Visible = boxesEnabled
          if boxesEnabled then
             d.box.Size = Vector2.new(boxWidth, boxHeight)
             d.box.Position = Vector2.new(vector.X - boxWidth/2, vector.Y - boxHeight/2)
          end
 
-         -- NAME + DISTANCIA
          d.name.Visible = namesEnabled
          if namesEnabled then
-            local dist = math.floor((rootPart.Position - rootPos).Magnitude)
+            local dist = math.floor((rootPart.Position - root.Position).Magnitude)
             d.name.Text = string.format("%s [%dm]", plr.Name, dist)
             d.name.Position = Vector2.new(vector.X, vector.Y - boxHeight/2 - 22)
          end
 
-         -- TRACER
          d.tracer.Visible = tracersEnabled
          if tracersEnabled then
             d.tracer.From = Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y)
             d.tracer.To = Vector2.new(vector.X, vector.Y)
          end
 
-         -- HEALTH BAR
          if healthBarEnabled then
             local hp = char.Humanoid.Health / char.Humanoid.MaxHealth
             local barColor = Color3.fromHSV(hp * 0.33, 1, 1)
-            
             local barX = vector.X - boxWidth/2 - 10
             local barY = vector.Y - boxHeight/2
             
@@ -253,13 +266,17 @@ ESPSection:NewToggle("Tracers", "Líneas desde abajo", function(s) tracersEnable
 ESPSection:NewToggle("Team Check", "No mostrar ESP a compañeros", function(s) teamCheckEnabled = s end)
 ESPSection:NewToggle("Health Bars", "Barra de vida a la izquierda", function(s) healthBarEnabled = s end)
 
--- Respawn
-player.CharacterAdded:Connect(function(new)
-   character = new
-   humanoid = new:WaitForChild("Humanoid")
-   rootPart = new:WaitForChild("HumanoidRootPart")
+-- Respawn handler (FIX: re-setup signals y aplicar movimiento)
+player.CharacterAdded:Connect(function(newChar)
+   task.wait(0.3)  -- Delay para que todo cargue
+   character = newChar
+   humanoid = newChar:WaitForChild("Humanoid", 5)
+   rootPart = newChar:WaitForChild("HumanoidRootPart", 5)
+   
+   setupMovementSignals()  -- Re-conectar signals
+   
    if flyEnabled then toggleFly(true) end
    if noclipEnabled then toggleNoclip(true) end
+   
+   applyMovement()  -- Aplicar inmediatamente
 end)
-
-Library:Notify("✅ Arreglado!", "Team Check + Health Bar funcionando correctamente.\nRightShift para abrir menú.")
