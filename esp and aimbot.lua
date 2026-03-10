@@ -1,281 +1,265 @@
--- Movement and Combat GUI by Juan Hub using Rayfield Library (ESP COMPLETO EN COMBAT)
+-- Movement and Combat GUI by Juan Hub - Kavo UI (Team Check + Health Bar FIXED)
 
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local Window = Rayfield:CreateWindow({
-   Name = "Movement and Combat by Juan Hub",
-   LoadingTitle = "Juan Hub",
-   LoadingSubtitle = "by Juan",
-   ConfigurationSaving = { Enabled = false },
-   KeySystem = false
-})
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("Movement & Combat | Juan Hub", "DarkTheme")
 
--- ==================== PESTAÑA MAIN (Movement) ====================
-local MainTab = Window:CreateTab("Main", nil)
+-- ==================== SERVICES ====================
+local Players          = game:GetService("Players")
+local RunService       = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
-local player = game.Players.LocalPlayer
+local player    = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
+local humanoid  = character:WaitForChild("Humanoid")
+local rootPart  = character:WaitForChild("HumanoidRootPart")
 
--- Variables Movement
-local flyEnabled = false
-local flySpeed = 50
-local walkSpeedEnabled = false
-local walkSpeedValue = 50
-local jumpPowerEnabled = false
-local jumpPowerValue = 100
+-- ==================== MOVEMENT VARIABLES ====================
+local flyEnabled          = false
+local flySpeed            = 50
+local walkSpeedEnabled    = false
+local walkSpeedValue      = 50
+local jumpPowerEnabled    = false
+local jumpPowerValue      = 100
 local infiniteJumpEnabled = false
-local noclipEnabled = false
+local noclipEnabled       = false
 
--- LOOP WalkSpeed + JumpPower
-game:GetService("RunService").Heartbeat:Connect(function()
-   if character and humanoid then
+-- ==================== ESP VARIABLES ====================
+local espEnabled       = false
+local boxesEnabled     = false
+local namesEnabled     = false
+local tracersEnabled   = false
+local teamCheckEnabled = true
+local healthBarEnabled = true
+
+local espDrawings = {}
+local camera = workspace.CurrentCamera
+
+-- WalkSpeed + JumpPower
+RunService.Heartbeat:Connect(function()
+   if character and humanoid and humanoid.Parent then
       humanoid.WalkSpeed = walkSpeedEnabled and walkSpeedValue or 16
       humanoid.JumpPower = jumpPowerEnabled and jumpPowerValue or 50
    end
 end)
 
 -- Infinite Jump
-game:GetService("UserInputService").JumpRequest:Connect(function()
+UserInputService.JumpRequest:Connect(function()
    if infiniteJumpEnabled and humanoid:GetState() == Enum.HumanoidStateType.Freefall then
       humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
    end
 end)
 
--- Fly Setup
+-- Fly
 local flyBV = Instance.new("BodyVelocity")
-flyBV.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+flyBV.MaxForce = Vector3.new(1e9, 1e9, 1e9)
 local flyBG = Instance.new("BodyGyro")
-flyBG.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-
-local function startFly()
-   local root = character:FindFirstChild("HumanoidRootPart")
-   if root then
-      flyBV.Parent = root
-      flyBG.Parent = root
-   end
-   humanoid.PlatformStand = true
-end
-
-local function stopFly()
-   flyBV.Parent = nil
-   flyBG.Parent = nil
-   humanoid.PlatformStand = false
-end
+flyBG.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
+flyBG.P = 15000
 
 local function updateFly()
-   if flyEnabled then
-      startFly()
-      local cam = workspace.CurrentCamera
-      local moveDir = Vector3.new(0, 0, 0)
-      local UIS = game:GetService("UserInputService")
-      if UIS:IsKeyDown(Enum.KeyCode.W) then moveDir += cam.CFrame.LookVector end
-      if UIS:IsKeyDown(Enum.KeyCode.S) then moveDir -= cam.CFrame.LookVector end
-      if UIS:IsKeyDown(Enum.KeyCode.A) then moveDir -= cam.CFrame.RightVector end
-      if UIS:IsKeyDown(Enum.KeyCode.D) then moveDir += cam.CFrame.RightVector end
-      if UIS:IsKeyDown(Enum.KeyCode.Space) then moveDir += Vector3.new(0,1,0) end
-      if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then moveDir -= Vector3.new(0,1,0) end
-      flyBV.Velocity = moveDir * flySpeed
-      flyBG.CFrame = cam.CFrame
-   else
-      stopFly()
-   end
+   if not flyEnabled or not rootPart then return end
+   local cam = workspace.CurrentCamera
+   local moveDir = Vector3.new()
+   if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir += cam.CFrame.LookVector end
+   if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir -= cam.CFrame.LookVector end
+   if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir -= cam.CFrame.RightVector end
+   if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir += cam.CFrame.RightVector end
+   if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDir += Vector3.new(0,1,0) end
+   if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then moveDir -= Vector3.new(0,1,0) end
+   
+   flyBV.Velocity = moveDir.Magnitude > 0 and moveDir.Unit * flySpeed or Vector3.new()
+   flyBG.CFrame = cam.CFrame
 end
-game:GetService("RunService").RenderStepped:Connect(updateFly)
+RunService.RenderStepped:Connect(updateFly)
 
--- Noclip
-local function setNoclip(state)
-   if character then
-      for _, part in pairs(character:GetDescendants()) do
-         if part:IsA("BasePart") then
-            part.CanCollide = not state
-         end
+local function toggleFly(state)
+   flyEnabled = state
+   local root = character and character:FindFirstChild("HumanoidRootPart")
+   if root then
+      if state then
+         flyBV.Parent = root
+         flyBG.Parent = root
+         humanoid.PlatformStand = true
+      else
+         flyBV.Parent = nil
+         flyBG.Parent = nil
+         humanoid.PlatformStand = false
       end
    end
 end
 
-game:GetService("RunService").Stepped:Connect(function()
-   if noclipEnabled then
-      setNoclip(true)
+-- Noclip
+local noclipConn
+local function toggleNoclip(state)
+   noclipEnabled = state
+   if state then
+      if noclipConn then noclipConn:Disconnect() end
+      noclipConn = RunService.Stepped:Connect(function()
+         if character then
+            for _, part in ipairs(character:GetDescendants()) do
+               if part:IsA("BasePart") then part.CanCollide = false end
+            end
+         end
+      end)
+   else
+      if noclipConn then noclipConn:Disconnect() end
    end
-end)
-setNoclip(false)
+end
 
--- ==================== ELEMENTOS MAIN ====================
-MainTab:CreateToggle({ Name = "Fly", CurrentValue = false, Callback = function(v) flyEnabled = v end })
-MainTab:CreateSlider({ Name = "Fly Speed", Range = {10, 300}, Increment = 1, Suffix = "Speed", CurrentValue = 50, Callback = function(v) flySpeed = v end })
-MainTab:CreateToggle({ Name = "Walk Speed", CurrentValue = false, Callback = function(v) walkSpeedEnabled = v end })
-MainTab:CreateSlider({ Name = "Walk Speed Value", Range = {16, 500}, Increment = 1, Suffix = "Speed", CurrentValue = 50, Callback = function(v) walkSpeedValue = v end })
-MainTab:CreateToggle({ Name = "Jump Power", CurrentValue = false, Callback = function(v) jumpPowerEnabled = v end })
-MainTab:CreateSlider({ Name = "Jump Power Value", Range = {50, 500}, Increment = 1, Suffix = "Power", CurrentValue = 100, Callback = function(v) jumpPowerValue = v end })
-MainTab:CreateToggle({ Name = "Infinite Jump", CurrentValue = false, Callback = function(v) infiniteJumpEnabled = v end })
-MainTab:CreateToggle({ Name = "Noclip", CurrentValue = false, Callback = function(v) noclipEnabled = v if not v then setNoclip(false) end end })
-MainTab:CreateButton({ Name = "Minimizar GUI", Callback = function() Rayfield:Notify({Title = "Cómo minimizar", Content = "Haz clic en la flecha ↓ arriba del GUI", Duration = 6}) end })
+-- ==================== MAIN TAB ====================
+local MainTab = Window:NewTab("Main")
+local MainSection = MainTab:NewSection("Movement Controls")
 
--- ==================== ESP SYSTEM (para Combat) ====================
-local Players = game:GetService("Players")
-local camera = workspace.CurrentCamera
+MainSection:NewToggle("Fly", "Vuelo libre con WASD + Space/Ctrl", function(s) toggleFly(s) end)
+MainSection:NewSlider("Fly Speed", "Velocidad del vuelo", 500, 10, function(v) flySpeed = v end)
+MainSection:NewToggle("Walk Speed", "Activar velocidad personalizada", function(s) walkSpeedEnabled = s end)
+MainSection:NewSlider("Walk Speed Value", "Valor de WalkSpeed", 1000, 16, function(v) walkSpeedValue = v end)
+MainSection:NewToggle("Jump Power", "Activar salto más alto", function(s) jumpPowerEnabled = s end)
+MainSection:NewSlider("Jump Power Value", "Valor de JumpPower", 1000, 50, function(v) jumpPowerValue = v end)
+MainSection:NewToggle("Infinite Jump", "Saltar infinitamente en el aire", function(s) infiniteJumpEnabled = s end)
+MainSection:NewToggle("Noclip", "Atravesar paredes", function(s) toggleNoclip(s) end)
 
-local espEnabled = false
-local boxesEnabled = false
-local namesEnabled = false
-local tracersEnabled = false
-local espDrawings = {}
+-- ==================== ESP SYSTEM ====================
+local CombatTab = Window:NewTab("Combat")
+local ESPSection = CombatTab:NewSection("ESP + Extras")
 
 local function createESP(plr)
    if plr == player or espDrawings[plr] then return end
    
-   local drawings = {
-      box = Drawing.new("Square"),
-      name = Drawing.new("Text"),
-      tracer = Drawing.new("Line")
+   local d = {
+      box       = Drawing.new("Square"),
+      name      = Drawing.new("Text"),
+      tracer    = Drawing.new("Line"),
+      healthBG  = Drawing.new("Square"),
+      healthBar = Drawing.new("Square")
    }
    
-   drawings.box.Thickness = 2
-   drawings.box.Filled = false
-   drawings.box.Transparency = 0.85
-   drawings.box.Color = Color3.fromRGB(255, 0, 0)
+   -- Box
+   d.box.Thickness = 2; d.box.Filled = false; d.box.Transparency = 1; d.box.Color = Color3.fromRGB(255,0,0); d.box.Visible = false
    
-   drawings.name.Size = 14
-   drawings.name.Center = true
-   drawings.name.Outline = true
-   drawings.name.Color = Color3.fromRGB(255, 255, 255)
-   drawings.name.Transparency = 1
+   -- Name
+   d.name.Size = 14; d.name.Center = true; d.name.Outline = true; d.name.Color = Color3.new(1,1,1); d.name.Transparency = 1; d.name.Visible = false
    
-   drawings.tracer.Thickness = 1.5
-   drawings.tracer.Transparency = 0.7
-   drawings.tracer.Color = Color3.fromRGB(0, 255, 255)
+   -- Tracer
+   d.tracer.Thickness = 1.5; d.tracer.Transparency = 0.8; d.tracer.Color = Color3.fromRGB(0,255,255); d.tracer.Visible = false
    
-   espDrawings[plr] = drawings
+   -- Health Bar
+   d.healthBG.Filled = true; d.healthBG.Transparency = 0.6; d.healthBG.Color = Color3.fromRGB(20,20,20); d.healthBG.Visible = false
+   d.healthBar.Filled = true; d.healthBar.Transparency = 1; d.healthBar.Visible = false
+   
+   espDrawings[plr] = d
 end
 
 local function updateESP()
-   for plr, drawings in pairs(espDrawings) do
-      if espEnabled and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-         local root = plr.Character.HumanoidRootPart
-         local pos, onScreen = camera:WorldToViewportPoint(root.Position)
-         
-         if onScreen then
-            -- Box
-            local headY = camera:WorldToViewportPoint(root.Position + Vector3.new(0, 2.5, 0)).Y
-            local legY = camera:WorldToViewportPoint(root.Position - Vector3.new(0, 3, 0)).Y
-            local boxHeight = headY - legY
-            local boxWidth = boxHeight / 2.2
+   for plr, d in pairs(espDrawings) do
+      local char = plr.Character
+      if not (espEnabled and char and char:FindFirstChild("Humanoid") and char:FindFirstChild("HumanoidRootPart") and char.Humanoid.Health > 0) then
+         if d.box then d.box.Visible = false end
+         if d.name then d.name.Visible = false end
+         if d.tracer then d.tracer.Visible = false end
+         if d.healthBG then d.healthBG.Visible = false end
+         if d.healthBar then d.healthBar.Visible = false end
+         continue
+      end
+
+      -- TEAM CHECK
+      if teamCheckEnabled and plr.Team == player.Team and not plr.Neutral then
+         d.box.Visible = false; d.name.Visible = false; d.tracer.Visible = false
+         d.healthBG.Visible = false; d.healthBar.Visible = false
+         continue
+      end
+
+      local root = char.HumanoidRootPart
+      local vector, onScreen = camera:WorldToViewportPoint(root.Position)
+
+      if onScreen then
+         local boxHeight = 5.8
+         local boxWidth  = boxHeight / 2.1
+         local rootPos   = root.Position
+
+         -- BOX
+         d.box.Visible = boxesEnabled
+         if boxesEnabled then
+            d.box.Size = Vector2.new(boxWidth, boxHeight)
+            d.box.Position = Vector2.new(vector.X - boxWidth/2, vector.Y - boxHeight/2)
+         end
+
+         -- NAME + DISTANCIA
+         d.name.Visible = namesEnabled
+         if namesEnabled then
+            local dist = math.floor((rootPart.Position - rootPos).Magnitude)
+            d.name.Text = string.format("%s [%dm]", plr.Name, dist)
+            d.name.Position = Vector2.new(vector.X, vector.Y - boxHeight/2 - 22)
+         end
+
+         -- TRACER
+         d.tracer.Visible = tracersEnabled
+         if tracersEnabled then
+            d.tracer.From = Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y)
+            d.tracer.To = Vector2.new(vector.X, vector.Y)
+         end
+
+         -- HEALTH BAR
+         if healthBarEnabled then
+            local hp = char.Humanoid.Health / char.Humanoid.MaxHealth
+            local barColor = Color3.fromHSV(hp * 0.33, 1, 1)
             
-            if boxesEnabled then
-               drawings.box.Visible = true
-               drawings.box.Size = Vector2.new(boxWidth, boxHeight)
-               drawings.box.Position = Vector2.new(pos.X - boxWidth/2, legY)
-            else
-               drawings.box.Visible = false
-            end
+            local barX = vector.X - boxWidth/2 - 10
+            local barY = vector.Y - boxHeight/2
             
-            -- Name
-            if namesEnabled then
-               drawings.name.Visible = true
-               local dist = player.Character and player.Character:FindFirstChild("HumanoidRootPart") and math.floor((player.Character.HumanoidRootPart.Position - root.Position).Magnitude) or 0
-               drawings.name.Text = plr.Name .. " (" .. dist .. "m)"
-               drawings.name.Position = Vector2.new(pos.X, legY - 18)
-            else
-               drawings.name.Visible = false
-            end
+            d.healthBG.Visible = true
+            d.healthBG.Size = Vector2.new(5, boxHeight)
+            d.healthBG.Position = Vector2.new(barX, barY)
             
-            -- Tracer
-            if tracersEnabled then
-               drawings.tracer.Visible = true
-               drawings.tracer.From = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y - 20)
-               drawings.tracer.To = Vector2.new(pos.X, pos.Y)
-            else
-               drawings.tracer.Visible = false
-            end
+            d.healthBar.Visible = true
+            d.healthBar.Size = Vector2.new(5, boxHeight * hp)
+            d.healthBar.Position = Vector2.new(barX, barY + boxHeight * (1 - hp))
+            d.healthBar.Color = barColor
          else
-            drawings.box.Visible = false
-            drawings.name.Visible = false
-            drawings.tracer.Visible = false
+            d.healthBG.Visible = false
+            d.healthBar.Visible = false
          end
       else
-         if drawings.box then drawings.box.Visible = false end
-         if drawings.name then drawings.name.Visible = false end
-         if drawings.tracer then drawings.tracer.Visible = false end
+         d.box.Visible = false; d.name.Visible = false; d.tracer.Visible = false
+         d.healthBG.Visible = false; d.healthBar.Visible = false
       end
    end
 end
 
-game:GetService("RunService").RenderStepped:Connect(updateESP)
+RunService.RenderStepped:Connect(updateESP)
 
--- Auto-crear ESP para jugadores nuevos y existentes
-Players.PlayerAdded:Connect(function(plr)
-   plr.CharacterAdded:Connect(function()
-      task.wait(0.6)
-      if espEnabled then createESP(plr) end
-   end)
-end)
-
-for _, plr in ipairs(Players:GetPlayers()) do
-   if plr ~= player then
-      if plr.Character then task.wait(0.6) if espEnabled then createESP(plr) end end
-      plr.CharacterAdded:Connect(function() task.wait(0.6) if espEnabled then createESP(plr) end end)
-   end
+-- Setup players
+local function setup(plr)
+   if plr == player then return end
+   plr.CharacterAdded:Connect(function() task.wait(0.4) if espEnabled then createESP(plr) end end)
+   if plr.Character then task.wait(0.4) if espEnabled then createESP(plr) end end
 end
+for _, p in Players:GetPlayers() do setup(p) end
+Players.PlayerAdded:Connect(setup)
 
-Players.PlayerRemoving:Connect(function(plr)
-   if espDrawings[plr] then
-      for _, d in pairs(espDrawings[plr]) do d:Remove() end
-      espDrawings[plr] = nil
-   end
-end)
-
--- ==================== PESTAÑA COMBAT ====================
-local CombatTab = Window:CreateTab("Combat", nil)
-
-CombatTab:CreateLabel("🔥 ESP System")
-CombatTab:CreateToggle({
-   Name = "Enable ESP",
-   CurrentValue = false,
-   Callback = function(Value)
-      espEnabled = Value
-      if Value then
-         for _, plr in ipairs(Players:GetPlayers()) do
-            if plr ~= player and not espDrawings[plr] then
-               createESP(plr)
-            end
-         end
+-- ==================== ESP TOGGLES ====================
+ESPSection:NewToggle("Enable ESP", "Activar todo el sistema", function(s)
+   espEnabled = s
+   if s then
+      for _, p in Players:GetPlayers() do
+         if p ~= player and not espDrawings[p] then createESP(p) end
       end
    end
-})
-
-CombatTab:CreateToggle({
-   Name = "Boxes",
-   CurrentValue = false,
-   Callback = function(Value) boxesEnabled = Value end
-})
-
-CombatTab:CreateToggle({
-   Name = "Names (con distancia)",
-   CurrentValue = false,
-   Callback = function(Value) namesEnabled = Value end
-})
-
-CombatTab:CreateToggle({
-   Name = "Tracers (desde abajo)",
-   CurrentValue = false,
-   Callback = function(Value) tracersEnabled = Value end
-})
-
-CombatTab:CreateButton({
-   Name = "Minimizar GUI",
-   Callback = function()
-      Rayfield:Notify({Title = "Cómo minimizar", Content = "Haz clic en la flecha ↓ en la barra superior del GUI", Duration = 6})
-   end
-})
-
--- ==================== RESPAWN ====================
-player.CharacterAdded:Connect(function(newChar)
-   character = newChar
-   humanoid = newChar:WaitForChild("Humanoid")
 end)
 
-Rayfield:Notify({
-   Title = "✅ ¡ESP AÑADIDO!",
-   Content = "Pestaña Combat con ESP completo:\n• Enable ESP\n• Boxes\n• Names (con distancia)\n• Tracers\n\n¡Todo separado y funcional!",
-   Duration = 0
-})
+ESPSection:NewToggle("Boxes", "Cajas alrededor del jugador", function(s) boxesEnabled = s end)
+ESPSection:NewToggle("Names + Distancia", "Nombre con metros arriba", function(s) namesEnabled = s end)
+ESPSection:NewToggle("Tracers", "Líneas desde abajo", function(s) tracersEnabled = s end)
+ESPSection:NewToggle("Team Check", "No mostrar ESP a compañeros", function(s) teamCheckEnabled = s end)
+ESPSection:NewToggle("Health Bars", "Barra de vida a la izquierda", function(s) healthBarEnabled = s end)
+
+-- Respawn
+player.CharacterAdded:Connect(function(new)
+   character = new
+   humanoid = new:WaitForChild("Humanoid")
+   rootPart = new:WaitForChild("HumanoidRootPart")
+   if flyEnabled then toggleFly(true) end
+   if noclipEnabled then toggleNoclip(true) end
+end)
+
+Library:Notify("✅ Arreglado!", "Team Check + Health Bar funcionando correctamente.\nRightShift para abrir menú.")
