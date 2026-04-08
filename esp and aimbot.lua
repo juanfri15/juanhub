@@ -1,5 +1,5 @@
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Library.CreateLib("Movement & Combat | Juan Hub", "DarkTheme")
+local Window = Library.CreateLib("Movement & Combat | PHAMTOM HUB", "DarkTheme")
 
 -- ==================== SERVICES ====================
 local Players = game:GetService("Players")
