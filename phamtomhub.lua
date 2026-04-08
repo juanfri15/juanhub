@@ -62,7 +62,7 @@ local Button = MainTab:CreateButton({
 })
 
 local Button = MainTab:CreateButton({
-   Name = "esp,aimbot and movement",
+   Name = "combat and movement",
    Callback = function()
    loadstring(game:HttpGet("raw.githubusercontent.com/juanfri15/juanhub/refs/heads/main/esp%20and%20aimbot.lua"))()
    end,
