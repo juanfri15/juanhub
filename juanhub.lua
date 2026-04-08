@@ -1,11 +1,11 @@
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "juanfrihub",
+   Name = "phantomhub",
    Icon = 0,
-   LoadingTitle = "juanfrihub",
-   LoadingSubtitle = "by juanfri",
-   ShowText = "juanfrihub",
+   LoadingTitle = "phantomhub",
+   LoadingSubtitle = "by juan",
+   ShowText = "phamtomhub",
    Theme = "Amethyst",
 
    ToggleUIKeybind = "K",
@@ -16,20 +16,20 @@ local Window = Rayfield:CreateWindow({
    ConfigurationSaving = {
       Enabled = true,
       FolderName = nil,
-      FileName = "juanfri HUB"
+      FileName = "PHANTOM HUB"
    },
 
    Discord = {
-      Enabled = false,
-      Invite = "noinvitelink",
+      Enabled = true,
+      Invite = "https://discord.gg/DzGxkSnWRr",
       RememberJoins = true 
    },
 
    KeySystem = true,
    KeySettings = {
-      Title = "juanfri hub key",
-      Subtitle = "en progeso",
-      Note = "key dada por juanfri",
+      Title = "phantom hub key",
+      Subtitle = "in progess",
+      Note = "key in discord",
       FileName = "Key",
       SaveKey = true,
       GrabKeyFromSite = true,
